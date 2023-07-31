@@ -1,0 +1,23 @@
+# to use this 
+you need first to build the image 
+docker build -t <any>:<any> .
+
+
+then you need to start your container based on that image , port 3000 should not be exposed external , it's used for internal api communication only  
+run -it -p 80:80 -p 443:443 -v <path/to/template>:/etc/nginx/conf.d <imageid/name>
+
+
+to access the nginx 
+localhost:80 , to access the container do 
+docker inspect <containerid>  , get the ip and run <ip>:3000
+
+
+
+
+/createdomaintenantbased
+/createrandomdomain
+/domainsmapuser
+/domainmapuser
+/removedomain
+
+
