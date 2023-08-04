@@ -154,12 +154,12 @@ def domain_map_user():
     except Exception as e:
         return jsonify({'error': f'an error occurred while processing the request: {str(e)}'}), 500
 
-@app.route('/removedomain', methods=['GET'])
+@app.route('/removedomain', methods=['POST'])
 def remove_domain():
-    if request.method != 'GET':
+    if request.method != 'POST':
         return jsonify({'error': 'Method Not Allowed'}), 405
 
-    domain = request.args.get('domain')
+    domain = request.form.get('domain')
     try:
         if not domain:
             return jsonify({'error': 'Domain parameter is required'}), 400
