@@ -21,11 +21,17 @@
 from flask import Flask, request, jsonify
 import os
 import subprocess
+from wtforms import Form, StringField, validators
 
 
 # used to make the microservice more dynamic
 path_to_template = "/etc/nginx/conf.d/template.sample"   # the sample must exist in the docker volume 
 config_output_path = "/etc/nginx/conf.d"
+
+class CreateDomainForm(Form):
+    tenant_id = StringField('tenant-id', [validators.DataRequired()])
+    subdomain = StringField('subdomain', [validators.DataRequired()])
+    domain = StringField('domain', [valid
 
 
 
@@ -43,7 +49,7 @@ user_domain_mapping = {}
 def create_domain_tenant_based():
     if request.method != 'POST':
         return jsonify({'error': 'method Not Allowed'}), 405
-    tenant_id = request.form.get('tenant-id')
+    tenant_id = request.form.get('tenant_id')
     subdomain = request.form.get('subdomain')
     try:
         if not tenant_id or not subdomain:
