@@ -45,6 +45,43 @@ domains = set()
 user_domain_mapping = {}
 
 
+
+
+# function layer 
+def generate_unique_hash():
+    # generate a random 12-digit hash
+    while True:
+        random_hash = str(secrets.randbelow(10**12)).zfill(12)  # Ensure 12-digit format
+        if random_hash not in domains: # Ensure that the hash is unique 
+            domains.add(random_hash)
+            return random_hash
+        
+
+
+
+
+# Endpoint 1: create a random subdomain for a user and nginx config file generated ( this require no mapping or tracking thus it used to generate the file and subdomain , storing and tracking handled at another layer )
+@app.route('/createrandomdomain', methods=['GET'])
+def create_random_domain():
+    if request.method != 'GET':
+        return jsonify({'error': 'method Not Allowed'}), 405
+    try:
+        new_domain = generate_unique_hash()
+        config_filename = new_domain + '.conf'
+        with open(path_to_template, 'r') as template_file:
+            template_content = template_file.read()
+        template_content = template_content.replace(f'<$variable1>', str(new_domain))
+        template_content = template_content.replace(f'<$variable2>', str(''))
+        with open(os.path.join(config_output_path, config_filename), 'w') as output_file:
+            output_file.write(template_content)
+        subprocess.run(['nginx', '-s', 'reload'], check=True)  # Add check=True to raise an exception if the command fails
+
+
+        return jsonify({'message': f'domain {new_domain} created successfully.'}), 200
+    except Exception as e:
+        return jsonify({'error': f'an error occurred while generating the domain: {str(e)}'}), 500
+               
+
 @app.route('/createdomaintenantbased', methods=['POST'])
 def create_domain_tenant_based():
     if request.method != 'POST':
