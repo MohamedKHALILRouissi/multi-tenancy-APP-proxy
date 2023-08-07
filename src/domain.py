@@ -120,9 +120,8 @@ def remove_domain():
         config_file_path = os.path.join(config_output_path, config_filename)
         if os.path.exists(config_file_path):
             os.remove(config_file_path)
-        subprocess.run(['nginx', '-s', 'reload'], check=True)
-
-        return jsonify({'message': f'Domain {domain} removed successfully'}), 200
+            subprocess.run(['nginx', '-s', 'reload'], check=True)
+            return jsonify({'message': f'Domain {domain} removed successfully'}), 200
         else:
             return jsonify({'message': f'Domain {domain} not found.'}), 404
     except Exception as e:
