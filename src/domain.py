@@ -79,18 +79,18 @@ def create_random_domain():
 
         return jsonify({'message': f'domain {new_domain} created successfully.'}), 200
     except Exception as e:
-        return jsonify({'error': f'an error occurred while generating the domain: {str(e)}'}), 500
+        return jsonify({'message': f'an error occurred while generating the domain: {str(e)}'}), 500
                
 
 @app.route('/createdomaintenantbased', methods=['POST'])
 def create_domain_tenant_based():
     if request.method != 'POST':
-        return jsonify({'error': 'method Not Allowed'}), 405
+        return jsonify({'message': 'method Not Allowed'}), 405
     tenant_id = request.form.get('tenant_id')
     subdomain = request.form.get('subdomain')
     try:
         if not tenant_id or not subdomain:
-            return jsonify({'error': 'both tenant-id and subdomain parameters are required'}), 400
+            return jsonify({'message': 'both tenant-id and subdomain parameters are required'}), 400
     
          
         config_filename = subdomain + '.conf'
@@ -105,87 +105,37 @@ def create_domain_tenant_based():
         with open(os.path.join(config_output_path, config_filename), 'w') as output_file:
             output_file.write(template_content)
         subprocess.run(['nginx', '-s', 'reload'], check=True)
-
-        if tenant_id in user_domain_mapping:  # Updated variable name
-            user_domain_mapping[tenant_id]['domains'].append(subdomain)  # Updated variable name
-        else:
-            user_domain_mapping[tenant_id] = {'tenant-id': tenant_id, 'domains': [subdomain]}  # Updated variable name
         return jsonify({'message': f'Domain {subdomain} created successfully'}), 200
     except FileNotFoundError as e:
-        return jsonify({'error' : 'file not found '}), 500
+        return jsonify({'message' : 'file not found '}), 500
     except Exception as e:
-        return jsonify({'error': f'an error occurred while creating the config file or domain: {str(e)}'}), 500
+        return jsonify({'message': f'an error occurred while creating the config file or domain: {str(e)}'}), 500
 
-
-@app.route('/domainsmapuser', methods=['GET'])
-def domains_map_user():
-    if request.method != 'GET':
-        return jsonify({'error': 'method Not Allowed'}), 405
-    tenant_id = request.args.get('tenant-id')  # Updated variable name
-    pag = int(request.args.get('pag', 50))
-    if not tenant_id:
-        return jsonify({'error': 'tenant-id parameter is required'})  # Updated variable name
-    if tenant_id not in user_domain_mapping:  # Updated variable name
-        return jsonify({'error': f'tenant {tenant_id} not found'}), 404  # Updated variable name
-    try:
-        mapped_domains = user_domain_mapping[tenant_id]['domains']  # Updated variable name
-        num_domains = len(mapped_domains)
-        start_index = 0
-        end_index = num_domains if pag >= num_domains else pag
-        paginated_domains = mapped_domains[start_index:end_index]
-        return jsonify({'tenant-id': tenant_id, 'domains': paginated_domains}), 200  # Updated variable name
-    except Exception as e:
-        return jsonify({'error': f'an error occurred while processing the request: {str(e)}'}), 500
-
-
-@app.route('/domainmapuser', methods=['GET'])
-def domain_map_user():
-    if request.method != 'GET':
-        return jsonify({'error': 'method Not Allowed'}), 405
-    domain = request.args.get('domain')
-    try:
-        if not domain:
-            return jsonify({'error': 'domain parameter is required'}), 400
-        for tenant_id, data in user_domain_mapping.items():  # Updated variable name
-            if domain in data['domains']:
-                return jsonify({'domain': domain, 'tenant-id': tenant_id}), 200  # Updated variable name
-
-        return jsonify({'error': f'domain {domain} not found'}), 404  # change it to something more useful not 404
-    except Exception as e:
-        return jsonify({'error': f'an error occurred while processing the request: {str(e)}'}), 500
 
 
 @app.route('/removedomain', methods=['POST'])
 def remove_domain():
     if request.method != 'POST':
-        return jsonify({'error': 'Method Not Allowed'}), 405
+        return jsonify({'message': 'Method Not Allowed'}), 405
 
     domain = request.form.get('domain')
     try:
         if not domain:
-            return jsonify({'error': 'Domain parameter is required'}), 400
+            return jsonify({'message': 'Domain parameter is required'}), 400
 
-        if domain in domains:
-            domains.remove(domain)
 
-            # Remove the domain from the user-domain mapping
-            for tenant_id, mapped_domains in user_domain_mapping.items():  # Updated variable name
-                if domain in mapped_domains['domains']:
-                    mapped_domains['domains'].remove(domain)
-                    break
+        # Delete the associated configuration file
+        config_filename = domain + '.conf'
+        config_file_path = os.path.join(config_output_path, config_filename)
+        if os.path.exists(config_file_path):
+            os.remove(config_file_path)
+        subprocess.run(['nginx', '-s', 'reload'], check=True)
 
-            # Delete the associated configuration file
-            config_filename = domain + '.conf'
-            config_file_path = os.path.join(config_output_path, config_filename)
-            if os.path.exists(config_file_path):
-                os.remove(config_file_path)
-            subprocess.run(['nginx', '-s', 'reload'], check=True)
-
-            return jsonify({'message': f'Domain {domain} removed successfully'}), 200
+        return jsonify({'message': f'Domain {domain} removed successfully'}), 200
         else:
-            return jsonify({'error': f'Domain {domain} not found.'}), 404
+            return jsonify({'message': f'Domain {domain} not found.'}), 404
     except Exception as e:
-        return jsonify({'error': f'An error occurred while removing the domain: {str(e)}'}), 500
+        return jsonify({'message': f'An error occurred while removing the domain: {str(e)}'}), 500
 
 
 
