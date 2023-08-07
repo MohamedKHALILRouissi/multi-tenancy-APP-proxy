@@ -38,7 +38,7 @@ app = Flask(__name__)
 
 
 
-
+domains = set()
 
 # function layer 
 def generate_unique_hash():
