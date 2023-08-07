@@ -21,18 +21,11 @@
 from flask import Flask, request, jsonify
 import os
 import subprocess
-from wtforms import Form, StringField, validators
 
 
 # used to make the microservice more dynamic
 path_to_template = "/etc/nginx/conf.d/template.sample"   # the sample must exist in the docker volume 
 config_output_path = "/etc/nginx/conf.d"
-
-class CreateDomainForm(Form):
-    tenant_id = StringField('tenant-id', [validators.DataRequired()])
-    subdomain = StringField('subdomain', [validators.DataRequired()])
-    domain = StringField('domain', [valid
-
 
 
 app = Flask(__name__)
@@ -41,8 +34,6 @@ app = Flask(__name__)
 # in-memory storage for domains and user-domain mapping (replace this with a proper database in production)
 # later on use caching as it will be faster to request 
 
-domains = set()
-user_domain_mapping = {}
 
 
 
