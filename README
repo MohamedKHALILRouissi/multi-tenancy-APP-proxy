@@ -11,6 +11,7 @@ to access the nginx
 localhost:80 , to access the container do 
 docker inspect <containerid>  , get the ip and run <ip>:3000
 
+![Screenshot](download.png)
 
 
 
