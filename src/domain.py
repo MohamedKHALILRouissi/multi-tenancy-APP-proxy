@@ -37,6 +37,7 @@ HEADERS = {
     "accept" : "application/json" 
     }
 HOST= os.environ.get('PY_HOST')
+EMAIL = os.environ.get('PY_EMAIL')
 
 app = Flask(__name__)
 
@@ -138,7 +139,7 @@ def create_random_domain():
         config_file_path = os.path.join(config_output_path, f"{new_domain}.{DOMAINNAME}.conf")
         with open(config_file_path, 'w') as config_file:
             config_file.write(template_content)
-        subprocess.run(['certbot', '--nginx', '--hsts' ,'-d' , f"{new_domain}.{DOMAINNAME}" ], check=True)  # Add check=True to raise an exception if the command fails
+        subprocess.run(['certbot', '--nginx', '--hsts' , '-m' , EMAIL , '-d' , f"{new_domain}.{DOMAINNAME}" ], check=True)  # Add check=True to raise an exception if the command fails
 
         return jsonify({'message': f'domain {new_domain} created successfully.'}), 200
     except Exception as e:
@@ -186,7 +187,7 @@ def create_domain_tenant_based():
             config_file_path = os.path.join(config_output_path, f"{subdomain}.{DOMAINNAME}.conf")
             with open(config_file_path, "w") as config_file:
                 config_file.write(template_content)
-            subprocess.run(['certbot', '--nginx', '--hsts' ,'-d' , f"{subdomain}.{DOMAINNAME}" ], check=True)
+            subprocess.run(['certbot', '--nginx', '--hsts', '-m' , EMAIL ,'-d' , f"{subdomain}.{DOMAINNAME}" ], check=True)
             return jsonify({'message': f'Domain {subdomain} created successfully'}), 200
                 
 
