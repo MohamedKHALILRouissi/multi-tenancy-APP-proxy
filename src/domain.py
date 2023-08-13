@@ -188,7 +188,7 @@ def create_domain_tenant_based():
             config_file_path = os.path.join(config_output_path, f"{subdomain}.{DOMAINNAME}.conf")
             with open(config_file_path, "w") as config_file:
                 config_file.write(template_content)
-            subprocess.run(['certbot', '--nginx', '--hsts', '-m' , EMAIL ,'-d' , domain , , '--agree-tos' , '-n' ], check=True)
+            subprocess.run(['certbot', '--nginx', '--hsts', '-m' , EMAIL ,'-d' , domain , '--agree-tos' , '-n' ], check=True)
             return jsonify({'message': f'Domain {subdomain} created successfully'}), 200
                 
 
