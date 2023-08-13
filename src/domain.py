@@ -139,7 +139,8 @@ def create_random_domain():
         config_file_path = os.path.join(config_output_path, f"{new_domain}.{DOMAINNAME}.conf")
         with open(config_file_path, 'w') as config_file:
             config_file.write(template_content)
-        subprocess.run(['certbot', '--nginx', '--hsts' , '-m' , EMAIL , '-d' , f"{new_domain}.{DOMAINNAME}" ], check=True)  # Add check=True to raise an exception if the command fails
+        domain = f"{new_domain}.{DOMAINNAME}"
+        subprocess.run(['certbot', '--nginx', '--hsts' , '-m' , EMAIL , '-d' , domain  ], check=True)  # Add check=True to raise an exception if the command fails
 
         return jsonify({'message': f'domain {new_domain} created successfully.'}), 200
     except Exception as e:
@@ -160,7 +161,7 @@ def create_domain_tenant_based():
 
         sslkey = None
         sslcertificat = None
-
+        domain = f"{subdomain}.{DOMAINNAME}"
         if sslkey_b64 and sslcertificat_b64:
             sslkey = base64.b64decode(sslkey_b64).decode('ascii')
             sslcertificat = base64.b64decode(sslcertificat_b64).decode('ascii')
@@ -187,7 +188,7 @@ def create_domain_tenant_based():
             config_file_path = os.path.join(config_output_path, f"{subdomain}.{DOMAINNAME}.conf")
             with open(config_file_path, "w") as config_file:
                 config_file.write(template_content)
-            subprocess.run(['certbot', '--nginx', '--hsts', '-m' , EMAIL ,'-d' , f"{subdomain}.{DOMAINNAME}" ], check=True)
+            subprocess.run(['certbot', '--nginx', '--hsts', '-m' , EMAIL ,'-d' , domain ], check=True)
             return jsonify({'message': f'Domain {subdomain} created successfully'}), 200
                 
 
@@ -239,6 +240,7 @@ def remove_domain():
             return jsonify({'error': 'domain and method parameter is required'}), 400
         
         result = removedomaindaddy(domain)
+        domaint = f"{domain}.{DOMAINNAME}"
 
         if result is not None:
             return jsonify({'error': result}), 400
@@ -252,7 +254,7 @@ def remove_domain():
             subprocess(["certbot","revoke","--cert-name", f"{domain}.{DOMAINNAME}" ,"--delete-after-revoke"],check=True)
             return jsonify({'message': f'Domain {domain} removed successfully'}), 200
         if method == "manu":
-            new_dir_path = os.path.join('/letsencrypt/certs/live', f"{domain}.{DOMAINNAME}")
+            new_dir_path = os.path.join('/letsencrypt/certs/live', domaint)
             os.removedirs(new_dir_path)
             subprocess(["nginx","-s","reload"],check=True)
             return jsonify({'message': f'Domain {domain} removed successfully'}), 200
