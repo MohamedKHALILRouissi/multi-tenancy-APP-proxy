@@ -1,4 +1,10 @@
-#### START <$variable1>
+server {
+  if ($host = <$variable1>.<$domain> ) {
+        return 301 https://$host$request_uri;
+    } # 
+
+  listen 80; # managed by Certbot
+}
 server {
   listen 443 ssl;
   listen [::]:443 ssl;
