@@ -1,19 +1,20 @@
-# use the nginx:1.15-alpine as the base image , i will make this more dynamic 
-FROM nginx:1.15-alpine
+FROM nginx:stable-alpine-slim
 
-# installing supervisor to manage multiple proccess in unix system 
 RUN apk add --no-cache supervisor
 
 WORKDIR /app
 
 COPY ./src .
 
-# installing the required packages (flask , pip ) 
-RUN apk add --no-cache python3 && \
-    python3 -m ensurepip && \
-    rm -r /usr/lib/python*/ensurepip && \
+COPY ./nginx-config/nginx.conf /etc/nginx/
+
+COPY ./nginx-config/conf.d /etc/nginx/conf.d/
+
+
+RUN apk add --no-cache --update py3-pip certbot && \
     pip3 install --no-cache --upgrade pip && \
-    pip3 install --no-cache flask
+    pip3 install --no-cache flask certbot-nginx
+
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
