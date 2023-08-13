@@ -17,6 +17,8 @@ RUN apk add --no-cache python3 && \
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+RUN (crontab -l ; echo '0 12 * * * /renew_cert.sh') | crontab -
+
 EXPOSE 3000
 
 CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
