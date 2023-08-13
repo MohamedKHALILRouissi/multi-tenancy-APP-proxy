@@ -77,10 +77,10 @@ def adddomaindaddy(domain):
     }
 
     data = [{     
-        "data": HOST,
+        "data": "@",
         "name": domain,
         "ttl": 600,
-        "type": "A"
+        "type": "CNAME"
     }]
 
     response = requests.patch(URL + f"/v1/domains/{DOMAINNAME}/records", headers=headers, json=data)
@@ -149,7 +149,7 @@ def create_random_domain():
 def create_domain_tenant_based():
     if request.method != 'POST':
         return jsonify({'message': 'method Not Allowed'}), 405
-    tenant_id = request.form.get('tenant_id')
+    tenant_id = request.form.get('tenant-id')
     subdomain = request.form.get('subdomain')
     sslkey_b64 = request.form.get('sslkey')
     sslcertificat_b64 = request.form.get('sslcertificat')
