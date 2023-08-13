@@ -72,7 +72,7 @@ def checkdomaingodaddy(domain):
 def adddomaindaddy(domain):
     headers = { 
         "Authorization": f"sso-key {API_KEY}:{API_SECRET}",
-        "accept": "application/json",
+        "Accept": "application/json",
         "Content-Type": "application/json" 
     }
 
@@ -123,12 +123,6 @@ def create_random_domain():
     if request.method != 'GET':
         return jsonify({'message': 'method Not Allowed'}), 405
     try:
-
-        host = request.args.get('host')
-        if host is None:
-            return jsonify({'message' : 'host is required in the query'}), 400
-
-        
 
         new_domain = generate_unique_hash()
         result = adddomaindaddy(new_domain)
