@@ -251,12 +251,12 @@ def remove_domain():
         os.remove(config_file_path)
 
         if method == "auto":
-            subprocess(["certbot","revoke","--cert-name", f"{domain}.{DOMAINNAME}" ,"--delete-after-revoke"],check=True)
+            subprocess.run(["certbot", "revoke", "--cert-name", f"{domain}.{DOMAINNAME}", "--delete-after-revoke"], check=True)
             return jsonify({'message': f'Domain {domain} removed successfully'}), 200
         if method == "manu":
             new_dir_path = os.path.join('/letsencrypt/certs/live', domaint)
             os.removedirs(new_dir_path)
-            subprocess(["nginx","-s","reload"],check=True)
+            subprocess.run(["nginx", "-s", "reload"], check=True)
             return jsonify({'message': f'Domain {domain} removed successfully'}), 200
 
 
