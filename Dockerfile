@@ -8,14 +8,9 @@ COPY ./src .
 
 COPY ./nginx-config/nginx.conf /etc/nginx/
 
-COPY ./nginx-config/conf.d /etc/nginx/conf.d/
-
-
 RUN apk add --no-cache --update py3-pip certbot && \
     pip3 install --no-cache --upgrade pip && \
     pip3 install --no-cache flask certbot-nginx
-
-RUN rm /etc/nginx/conf.d/default.conf
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
