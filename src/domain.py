@@ -21,6 +21,7 @@ import os
 import subprocess
 import requests
 import base64
+import time
 
 
 
@@ -140,6 +141,7 @@ def create_random_domain():
         with open(config_file_path, 'w') as config_file:
             config_file.write(template_content)
         domain = f"{new_domain}.{DOMAINNAME}"
+        time.sleep(120)
         subprocess.run(['certbot', '--nginx', '--hsts' , '-m' , EMAIL , '-d' , domain , '--agree-tos' , '-n' ], check=True)  # Add check=True to raise an exception if the command fails
 
         return jsonify({'message': f'domain {new_domain} created successfully.'}), 200
@@ -188,6 +190,8 @@ def create_domain_tenant_based():
             config_file_path = os.path.join(config_output_path, f"{subdomain}.{DOMAINNAME}.conf")
             with open(config_file_path, "w") as config_file:
                 config_file.write(template_content)
+
+            time.sleep(120)
             subprocess.run(['certbot', '--nginx', '--hsts', '-m' , EMAIL ,'-d' , domain , '--agree-tos' , '-n' ], check=True)
             return jsonify({'message': f'Domain {subdomain} created successfully'}), 200
                 
