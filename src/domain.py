@@ -26,9 +26,11 @@ import time
 
 
 # used to make the microservice more dynamic
-path_to_template_auto = "/etc/nginx/conf.d/templatesecauto.sample"   # the sample must exist in the docker volume 
+path_to_template_auto = "/etc/nginx/conf.d/templatesecauto.sample"   # the sample must exist in the docker volume #### DEPRECATED ##### removed for clean code 
+path_to_template_wildcard = "/etc/nginx/conf.d/wildcard.sample"
 path_to_template_manu = "/etc/nginx/conf.d/templatesecmanual.sample"
 config_output_path = "/etc/nginx/conf.d"
+config_init="/etc/nginx/conf.d/wildcardstatic.conf"  # can be optimized 
 DOMAINNAME= os.environ.get('PY_DOMAINNAME') # domain name must be complete with *.com
 API_KEY = os.environ.get('PY_API_KEY')
 API_SECRET = os.environ.get('PY_API_SECRET')
@@ -39,6 +41,7 @@ HEADERS = {
     }
 HOST= os.environ.get('PY_HOST')
 EMAIL = os.environ.get('PY_EMAIL')
+INIT = os.environ.get('PY_INIT')
 
 app = Flask(__name__)
 
@@ -69,6 +72,30 @@ def checkdomaingodaddy(domain):
         return False
     return True
 
+
+
+def init():
+    temp_config_path = config_init + ".temp"  # Temporary file path
+
+    with open(config_init, 'r') as f:
+        content = f.read()
+
+    content = content.replace('<$domain>', DOMAINNAME)
+    content = content.replace('<$variable1>', '*')
+    content = content.replace('<$host>', HOST)
+
+    # Write the modified content to the temporary file
+    with open(temp_config_path, 'w') as temp_f:
+        temp_f.write(content)
+
+    # Replace the original config file with the temporary one
+    os.replace(temp_config_path, config_init)
+
+    subprocess.run(["nginx", "-s", "reload"], check=True)
+
+    
+
+    
 
 
 def adddomaindaddy(domain):
@@ -131,7 +158,7 @@ def create_random_domain():
         if result is not None:
             return jsonify({'message': result}), 400
 
-        with open(path_to_template_auto, 'r') as template_file:
+        with open(path_to_template_wildcard, 'r') as template_file:
             template_content = template_file.read()
 
         template_content = template_content.replace('<$variable1>', new_domain)
@@ -140,15 +167,13 @@ def create_random_domain():
         config_file_path = os.path.join(config_output_path, f"{new_domain}.{DOMAINNAME}.conf")
         with open(config_file_path, 'w') as config_file:
             config_file.write(template_content)
-        domain = f"{new_domain}.{DOMAINNAME}"
-        time.sleep(120)
-        subprocess.run(['certbot', '--nginx', '--hsts' , '-m' , EMAIL , '-d' , domain , '--agree-tos' , '-n' ], check=True)  # Add check=True to raise an exception if the command fails
+        subprocess.run([ "nginx", "-s", "reload" ], check=True)  # Add check=True to raise an exception if the command fails
 
         return jsonify({'message': f'domain {new_domain} created successfully.'}), 200
     except Exception as e:
         return jsonify({'message': f'an error occurred while generating the domain: {str(e)}'}), 500
                
-
+#tenant-id is not used as variable here , just for future implementation for tracking 
 @app.route('/createdomaintenantbased', methods=['POST'])
 def create_domain_tenant_based():
     if request.method != 'POST':
@@ -157,9 +182,20 @@ def create_domain_tenant_based():
     subdomain = request.form.get('subdomain')
     sslkey_b64 = request.form.get('sslkey')
     sslcertificat_b64 = request.form.get('sslcertificat')
+    sslwildcard = request.form.get('sslwild')
     try:
+
+
         if (sslkey_b64 and not sslcertificat_b64) or (sslcertificat_b64 and not sslkey_b64):
             return jsonify({'message': 'Both SSL key and certificate are required if one is provided'}), 400
+
+
+
+
+
+
+
+
 
         sslkey = None
         sslcertificat = None
@@ -176,6 +212,21 @@ def create_domain_tenant_based():
         if not tenant_id or not subdomain:
             return jsonify({'message': 'both tenant-id and subdomain parameters are required'}), 400
     
+        if sslwildcard == True:
+            with open(path_to_template_wildcard,"r") as f:
+                content = f.read()
+            
+            content = content.replace('<$variable1>',subdomain)
+            content = content.replace('<$domain>',DOMAINNAME)
+            content = content.replace('<$host>', HOST)
+            config_file_path = os.path.join(config_output_path, f"{subdomain}.{DOMAINNAME}.conf")
+            with open(config_file_path,'r') as config_file:
+                config_file.write(template_content)
+            subprocess.run([ "nginx", "-s", "reload" ], check=True)  # Add check=True to raise an exception if the command fails
+            return jsonify({'message': f'Domain {subdomain} created successfully wildcard'}), 200
+
+
+
         result = adddomaindaddy(subdomain)
 
         if result is not None:
@@ -250,7 +301,7 @@ def remove_domain():
             return jsonify({'error': result}), 400
         
         file = f"{domain}.{DOMAINNAME}.conf"
-
+        # by default handle wildcard 
         config_file_path = os.path.join(config_output_path, file )
         os.remove(config_file_path)
 
@@ -262,6 +313,9 @@ def remove_domain():
             os.removedirs(new_dir_path)
             subprocess.run(["nginx", "-s", "reload"], check=True)
             return jsonify({'message': f'Domain {domain} removed successfully'}), 200
+        if method == "wildcard":
+            return jsonify({'message': f'Domain {domain} removed successfully'}), 200
+
 
 
         
